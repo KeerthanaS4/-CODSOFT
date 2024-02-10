@@ -1,0 +1,77 @@
+mkdir ecommerce-website
+cd ecommerce-website
+npm init -y
+mkdir backend
+cd backend
+npm init -y
+npm install express mongoose cors dotenv stripe
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost/ecommerce', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+// Import routes
+const productRoutes = require('./routes/productRoutes');
+const userRoutes = require('./routes/userRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+
+// Setup routes
+app.use('/api/products', productRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/orders', orderRoutes);
+
+// Start the server
+const port = process.env.PORT || 5000;
+app.listen(port, () => console.log(`Server started on port ${port}`));
+npx create-react-app client
+cd client
+npm install axios react-router-dom
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+import { StripeProvider } from 'react-stripe-elements';
+import { loadStripe } from '@stripe/stripe-js';
+
+// Replace with your actual Stripe publishable key
+const stripePromise = loadStripe('your_stripe_publishable_key');
+
+ReactDOM.render(
+  <StripeProvider stripe={stripePromise}>
+    <App />
+  </StripeProvider>,
+  document.getElementById('root')
+);
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const Product = ({ match }) => {
+  const [product, setProduct] = useState({});
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const { data } = await axios.get(`/api/products/${match.params.id}`);
+      setProduct(data);
+    };
+
+    fetchProduct();
+  }, [match.params.id]);
+
+  return (
+    <div>
+      <h1>{product.name}</h1>
+      <p>{product.description}</p>
+      <p>Price: ${product.price}</p>
+    </div>
+  );
+};
+
+export default Product;
